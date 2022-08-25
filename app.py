@@ -1,29 +1,25 @@
-
-from crypt import methods
-from flask import Flask
-from flask import render_template
-from flask import request
-from flask import redirect
-
+from flask import Flask, render_template, request, redirect, session
+from flask_session import Session
 
 app = Flask(__name__)
 
-@app.route("/", methods = ["GET", "POST"])
-def register():
-    if request.method == "POST":
-        name = request.form.get["name"]
-        print(name)
-        return redirect("index.html")
-    else:
-        return render_template("register.html")
+app.config["SESSION_PERMANENT"] = False
+app.config["SESSION_TYPE"] = "filesystem"
+Session(app)
 
-
-@app.route("/index")
+@app.route("/")
 def index():
     return render_template("index.html")
 
-@app.route("/bla", methods = ["POST"])
+@app.route("/login")
+def login():
+    return render_template("login.html")
+
+@app.route("/register")
+def register():
+    return render_template("register.html")
+
+@app.route("/bla")
 def bla():
-    name = request.form.get("name")
-    return render_template("bla.html",name=name)
+    return render_template("bla.html")
     
