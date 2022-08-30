@@ -1,9 +1,10 @@
 from asyncore import read
 from crypt import methods
+from time import strftime
 from flask import Flask, render_template, request, redirect, session, flash, url_for
 from flask_session import Session
 from passlib.hash import sha256_crypt
-from datetime import datetime
+from datetime import date
 import sqlite3
 from flask_mail import Mail,Message
 from werkzeug.utils import secure_filename
@@ -31,9 +32,17 @@ app.config['MAIL_USE_SSL'] = False
 mail = Mail(app)
 
 
-@app.route("/")
+@app.route("/",methods=["GET","POST"])
 def index():
-    return render_template("index.html")
+    today = date.today()
+    d = today.strftime("%Y-%m-%d")
+    if request.method == "POST":
+        date_depart = request.form.get("date-of-departure")
+        print(date_depart)
+        return render_template("index.html",d=d)
+    else:
+        return render_template("index.html",d=d)
+    
 
 @app.route("/profil",methods=["GET","POST"])
 def profil():
@@ -141,11 +150,3 @@ def register():
             mail.send(msg)
             flag = 1
             return render_template("login.html",flag=flag)
-       
-        
-
-
-@app.route("/bla")
-def bla():
-    return render_template("bla.html")
-    

@@ -7,3 +7,29 @@
 #signin{
     margin: 10px;
 }
+:checked + label {
+    font-weight: bold;
+}
+.radio {
+    margin: 10px;
+}
+.choice{
+    position: relative;
+}
+.airports{
+    width: 65%;
+    position:absolute;
+    top: 30%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+.number{
+    width: 3em;
+}
+.airports input, label{
+    display: block;
+}
+b{
+    font-size: 10px;
+    font-weight: 700;
+}
