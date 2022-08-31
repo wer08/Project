@@ -4,7 +4,7 @@ from time import strftime
 from flask import Flask, render_template, request, redirect, session, flash, url_for
 from flask_session import Session
 from passlib.hash import sha256_crypt
-from datetime import date
+from datetime import date,datetime
 import sqlite3
 from flask_mail import Mail,Message
 from werkzeug.utils import secure_filename
@@ -19,8 +19,6 @@ app.config["SESSION_PERMANENT"] = False
 app.config["SESSION_TYPE"] = "filesystem"
 app.config["UPLOAD_FOLDER"] = "static/"
 Session(app)
-#flag to check if succesful registration
-flag = -2
 
 
 app.config['MAIL_SERVER']='smtp.mailtrap.io'
@@ -34,14 +32,34 @@ mail = Mail(app)
 
 @app.route("/",methods=["GET","POST"])
 def index():
+    airports = db.execute("SELECT city,name FROM airport")
     today = date.today()
     d = today.strftime("%Y-%m-%d")
     if request.method == "POST":
-        date_depart = request.form.get("date-of-departure")
-        print(date_depart)
-        return render_template("index.html",d=d)
+        departure = request.form.get("departure")
+        arrival = request.form.get("arrival")
+        date_departure = request.form.get("date-of-departure")
+        date_depart_format = datetime.strptime(date_departure,"%Y-%m-%d")
+        date_depart_format = date_depart_format.strftime("%d.%m.%Y")
+        date_return = request.form.get("date-of-return")
+        adults = request.form.get("adults")
+        underage = request.form.get("underage")
+        id_departures = db.execute("SELECT id FROM airport WHERE name = ?",(departure,))
+        id_departure = id_departures.fetchone()
+        id_arrivals = db.execute("SELECT id FROM airport WHERE name = ?",(arrival,))
+        id_arrival = id_arrivals.fetchone()
+        data_tuple = (id_departure[0],id_arrival[0],date_depart_format)
+        print(id_departure[0])
+        print(id_arrival[0])
+        print(date_depart_format)
+        flights_cursor = db.execute("SELECT * FROM flight WHERE departure_id = ? AND arrival_id = ? AND date = ?",data_tuple)
+        flights = flights_cursor.fetchall()
+
+
+        
+        return render_template("index.html",d=d,airports=airports,flights=flights)
     else:
-        return render_template("index.html",d=d)
+        return render_template("index.html",d=d,airports=airports)
     
 
 @app.route("/profil",methods=["GET","POST"])
@@ -49,7 +67,6 @@ def profil():
     if request.method == "GET":
         users= db.execute("SELECT * FROM users WHERE username = ?",(session["name"],))
         user = users.fetchone()
-        print(user)
         username = user[1]
         name = user[2]
         surname = user[3]
@@ -70,7 +87,7 @@ def profil():
         flash('You changed personal information')
         session["name"] = username
         print(session["name"])
-        return render_template("profil.html",username=username,name=name,surname=surname,email=email,flag=flag)
+        return render_template("profil.html",username=username,name=name,surname=surname,email=email)
         
 
 

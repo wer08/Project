@@ -16,10 +16,15 @@
     </div>
 
    <div class="airports">
+    <datalist id="mylist">
+        {% for airport in airports %}
+        <option value={{airport[1]}}>
+        {% endfor %}
+     </datalist>
     <form action ="/" method = "POST">
         <span>
             <label><b>Departure</b>
-            <input name="departure" placeholder="Departure" type ="text" autofocus>
+            <input name="departure" id="departure" placeholder="Departure" type ="search" autofocus list="mylist">
             </label>
         </span>
 
@@ -31,7 +36,7 @@
         
         <span>
             <label><b>Arrival</b>
-            <input name="arrival" placeholder="Arrival" type ="text">
+            <input name="arrival" placeholder="Arrival" type ="text" list="mylist">
             </label>
         </span>
 
@@ -69,7 +74,8 @@
     </form>
    </div>
 </div>
-<script>
+<p>{{flights}}</p>
+<script> 
     var radioButtonSection = document.getElementsByName('choice');
     const element = document.getElementById("icon");
     console.log(radioButtonSection)
