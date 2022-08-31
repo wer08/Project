@@ -13,16 +13,7 @@
 .radio {
     margin: 10px;
 }
-.choice{
-    position: relative;
-}
-.airports{
-    width: 65%;
-    position:absolute;
-    top: 30%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-}
+
 .number{
     width: 3em;
 }
@@ -32,4 +23,13 @@
 b{
     font-size: 10px;
     font-weight: 700;
+}
+ul.flashes{
+    list-style-type: none;
+    padding: 0; 
+    margin: 0; 
+}
+
+.navbar.navbar-default{
+    background-color: lightgrey;
 }

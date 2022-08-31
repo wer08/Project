@@ -57,18 +57,17 @@ def profil():
         return render_template("profil.html",username=username,name=name,surname=surname,email=email)
     else:
         username = request.form.get("username")
-        print(username)
         name = request.form.get("name")
         surname = request.form.get("surname")
         email = request.form.get("email")
         users = db.execute("SELECT username, email FROM users WHERE NOT username = ?",(session["name"],))
         for user in users:
             if user[0] == username or user[1] == email:
-                flag  = 4
+                flash('There is user with this username or email')
                 return redirect("/profil")
         db.execute("UPDATE users SET username = ? , name = ? , surname = ? , email = ? WHERE username = ?",[username,name,surname,email,session["name"]])
         con.commit()
-        flag =  5
+        flash('You changed personal information')
         session["name"] = username
         print(session["name"])
         return render_template("profil.html",username=username,name=name,surname=surname,email=email,flag=flag)
@@ -77,18 +76,17 @@ def profil():
 
 @app.route("/logout")
 def logout():
-    flag = 3
+    flash('You are logout')
     session["name"] = None
-    return render_template("index.html")
+    return redirect("/")
 
 @app.route("/login", methods = ["GET","POST"])
 def login():
     if request.method == "GET":
         return render_template("login.html")
     else:
-        checked = request.form.get("checkbox")
-        print(checked)
         username = request.form.get("inputUsername")
+        print(username)
         password = request.form.get("inputPassword")
         users = db.execute("SELECT username FROM users")
         for user in users:
@@ -96,15 +94,15 @@ def login():
                 passwords = db.execute("SELECT hashed_password FROM users WHERE username = ?",user)
                 for hash in passwords:
                     if sha256_crypt.verify(password,hash[0]):
-                        flag = -1
+                        flash('You were successfully logged in')
                         session["name"] = username
-                        return render_template("index.html",flag=flag) 
+                        return redirect("/")
                     else:
-                        flag = 0
-                        return render_template("login.html",flag=flag)
-            else:
-                flag = 2
-        return render_template("login.html",flag=flag)
+                        flash('Wrong password')
+                        return redirect("/login")
+        else:
+            flash('Wrong username')
+            return redirect("/login")
 
 
 @app.route("/upload", methods=["GET","POST"])
@@ -116,8 +114,8 @@ def upload():
         filename = secure_filename(file.filename)
         file.save(app.config["UPLOAD_FOLDER"] + filename)
         picture = app.config["UPLOAD_FOLDER"] + filename
-        flag = 5
-        return render_template("profil.html",flag=flag,picture=picture)
+        flash("profile picture changed")
+        return redirect("/profil")
 
 
 
@@ -134,19 +132,19 @@ def register():
         password = request.form.get("inputPassword")
         confirm = request.form.get("inputConfirmPassword")
         if not password == confirm:
-            flag = 0
-            return render_template("register.html",flag=flag)
+            flash("Password and confirmation are not the same")
+            return redirect("/register")
         else:
             users = db.execute("SELECT username,email FROM users")
             for user in users:
                 if username == user[0] or email == user[1]:
-                    flag = 4
-                    return render_template("register.html",flag=flag)
+                    flash("This username or email is taken")
+                    return redirect("/register")
             hash_password = sha256_crypt.hash(password)
             db.execute("INSERT INTO users (username,name,surname,email,hashed_password) VALUES (?,?,?,?,?)",(username,name,surname,email,hash_password))
             con.commit()
             msg = Message('Registration confirmation', sender =   'peter@mailtrap.io', recipients = ['paul@mailtrap.io'])
             msg.body = "You are registered"
             mail.send(msg)
-            flag = 1
-            return render_template("login.html",flag=flag)
+            flash("Registration succesful")
+            return redirect("/login")

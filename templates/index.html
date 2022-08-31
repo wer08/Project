@@ -3,17 +3,19 @@
     index
 {%endblock%}
 {% block content %}
-<div>
-        <form  action = "/">
-            <input name="choice" id="two_way" value = "two" type="radio" checked>
-            <label for="two_way" class="radio">Both ways</label>
+<div class="choice">
+    <div>
+    <form  action = "/">
+        <input name="choice" id="two_way" value = "two" type="radio" checked>
+        <label for="two_way" class="radio">Both ways</label>
 
-            <input name="choice" id = "one_way" value ="one" type="radio">
-            <label for="one_way" class = "radio">One way</label>
+        <input name="choice" id = "one_way" value ="one" type="radio">
+        <label for="one_way" class = "radio">One way</label>
             
-            <input name="choice" id="multi-direction" value = "three" type="radio">
-            <label for="multi-direction" class="radio">Multiple Directions</label>
-        </form>
+        <input name="choice" id="multi-direction" value = "three" type="radio">
+        <label for="multi-direction" class="radio">Multiple Directions</label>
+    </form>
+    </div>
 
    <div class="airports">
     <form action ="/" method = "POST">
