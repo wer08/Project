@@ -42,6 +42,8 @@ def index():
         date_depart_format = datetime.strptime(date_departure,"%Y-%m-%d")
         date_depart_format = date_depart_format.strftime("%d.%m.%Y")
         date_return = request.form.get("date-of-return")
+        date_return_format = datetime.strptime(date_return,"%Y-%m-%d")
+        date_return_format = date_return_format.strftime("%d.%m.%Y")
         adults = request.form.get("adults")
         underage = request.form.get("underage")
         id_departures = db.execute("SELECT id FROM airport WHERE name = ?",(departure,))
@@ -52,12 +54,17 @@ def index():
         print(id_departure[0])
         print(id_arrival[0])
         print(date_depart_format)
-        flights_cursor = db.execute("SELECT * FROM flight WHERE departure_id = ? AND arrival_id = ? AND date = ?",data_tuple)
-        flights = flights_cursor.fetchall()
+        flights_to_cursor = db.execute("SELECT * FROM flight WHERE departure_id = ? AND arrival_id = ? AND date = ?",data_tuple)
+        flights_to = flights_to_cursor.fetchall()
+        data_tuple2 = (id_arrival[0],id_departure[0],date_return_format)
+        flights_from_cursor = db.execute("SELECT * FROM flight WHERE departure_id = ? AND arrival_id = ? AND date = ?",data_tuple2)
+        flights_from = flights_from_cursor.fetchall()
+        
+        airport_start_cursor = db.execute("SELECT ")
 
 
         
-        return render_template("index.html",d=d,airports=airports,flights=flights)
+        return render_template("index.html",d=d,airports=airports,flights_to=flights_to)
     else:
         return render_template("index.html",d=d,airports=airports)
     
