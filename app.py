@@ -28,22 +28,29 @@ app.config['MAIL_PASSWORD'] = '13b217b9a01d7d'
 app.config['MAIL_USE_TLS'] = True
 app.config['MAIL_USE_SSL'] = False
 mail = Mail(app)
-
-
-@app.route("/",methods=["GET","POST"])
+    
+@app.route("/", methods=["GET","POST"])
 def index():
+    session["flights_to"].clear()
+    session["flights_from"].clear()
+    choice = request.form.get("choice",False)
     airports = db.execute("SELECT city,name FROM airport")
     today = date.today()
     d = today.strftime("%Y-%m-%d")
     if request.method == "POST":
         departure = request.form.get("departure")
+        session["departure"] = departure
         arrival = request.form.get("arrival")
+        if departure == arrival:
+            flash("You have to choose different airports")
+            return redirect("/")
+        session["arrival"] = arrival
         date_departure = request.form.get("date-of-departure")
+        if not date_departure:
+            flash("Enter date of departure")
+            return redirect("/")
         date_depart_format = datetime.strptime(date_departure,"%Y-%m-%d")
         date_depart_format = date_depart_format.strftime("%d.%m.%Y")
-        date_return = request.form.get("date-of-return")
-        date_return_format = datetime.strptime(date_return,"%Y-%m-%d")
-        date_return_format = date_return_format.strftime("%d.%m.%Y")
         adults = request.form.get("adults")
         underage = request.form.get("underage")
         id_departures = db.execute("SELECT id FROM airport WHERE name = ?",(departure,))
@@ -51,23 +58,30 @@ def index():
         id_arrivals = db.execute("SELECT id FROM airport WHERE name = ?",(arrival,))
         id_arrival = id_arrivals.fetchone()
         data_tuple = (id_departure[0],id_arrival[0],date_depart_format)
-        print(id_departure[0])
-        print(id_arrival[0])
-        print(date_depart_format)
         flights_to_cursor = db.execute("SELECT * FROM flight WHERE departure_id = ? AND arrival_id = ? AND date = ?",data_tuple)
         flights_to = flights_to_cursor.fetchall()
-        data_tuple2 = (id_arrival[0],id_departure[0],date_return_format)
-        flights_from_cursor = db.execute("SELECT * FROM flight WHERE departure_id = ? AND arrival_id = ? AND date = ?",data_tuple2)
-        flights_from = flights_from_cursor.fetchall()
-        
-        airport_start_cursor = db.execute("SELECT ")
-
-
-        
-        return render_template("index.html",d=d,airports=airports,flights_to=flights_to)
+        if not flights_to:
+            flash("There is no flight on that day")
+            return redirect("/")
+        session["flights_to"] = flights_to
+        if choice == "two":
+            date_return = request.form.get("date-of-return")
+            date_return_format = datetime.strptime(date_return,"%Y-%m-%d")
+            date_return_format = date_return_format.strftime("%d.%m.%Y")
+            data_tuple2 = (id_arrival[0],id_departure[0],date_return_format)
+            flights_from_cursor = db.execute("SELECT * FROM flight WHERE departure_id = ? AND arrival_id = ? AND date = ?",data_tuple2)
+            flights_from = flights_from_cursor.fetchall()
+            if not flights_from:
+                flash("There is no return flight on that day")
+                return redirect("/")
+            session["flights_from"] = flights_from
+            print(session["flights_from"])
+            print(session["flights_to"])
+            return render_template("index.html",d=d,airports=airports,departure=session["departure"],arrival=session["arrival"],flights_to=session["flights_to"],flights_from=session["flights_from"],choice=choice)
+        else:
+            return render_template("index.html",d=d,airports=airports,departure=session["departure"],arrival=session["arrival"],flights_to=session["flights_to"],flights_from=session["flights_from"],choice=choice)
     else:
-        return render_template("index.html",d=d,airports=airports)
-    
+        return render_template("index.html",d=d,airports=airports,departure=session["departure"],arrival=session["arrival"],flights_to=session["flights_to"],flights_from=session["flights_from"],choice=choice)
 
 @app.route("/profil",methods=["GET","POST"])
 def profil():
@@ -78,7 +92,7 @@ def profil():
         name = user[2]
         surname = user[3]
         email = user[4]
-        return render_template("profil.html",username=username,name=name,surname=surname,email=email)
+        return render_template("profil.html",username=username,name=name,surname=surname,email=email,picture=session["picture"])
     else:
         username = request.form.get("username")
         name = request.form.get("name")
@@ -138,11 +152,9 @@ def upload():
         filename = secure_filename(file.filename)
         file.save(app.config["UPLOAD_FOLDER"] + filename)
         picture = app.config["UPLOAD_FOLDER"] + filename
+        session["picture"] = picture
         flash("profile picture changed")
         return redirect("/profil")
-
-
-
 
 @app.route("/register", methods=["GET","POST"]) 
 def register():

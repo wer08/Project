@@ -33,3 +33,10 @@ ul.flashes{
 .navbar.navbar-default{
     background-color: lightgrey;
 }
+
+.start{
+    margin-right: 30px;
+}
+.finish{
+    margin-left: 30px;
+}
