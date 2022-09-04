@@ -68,8 +68,7 @@
     </div>
 </form>
 <form action="/" method="post">
-    
-    {% for flight_to in flights_to %}
+    {% for flight in flights %}
     <div class ="border">
         <div>
             <span class = "start">
@@ -83,11 +82,9 @@
             <span class="finish">
                 {{arrival}}
             </span>
-            <span class="finish">{{flight_to[4]}} - {{flight_to[5]}}</span>
+            <span class="finish">{{flight[4]}} - {{flight[5]}}</span>
         </div>
-        {% endfor %}
         {% if choice == "two" %}
-        {% for flight_from in flights_from  %}
         <div >
             <span class = "start">
                 {{arrival}}
@@ -100,17 +97,20 @@
             <span class="finish">
                 {{departure}}
             </span>
-            <span class="finish">{{flight_from[4]}} - {{flight_from[5]}}</span>
+            <span class="finish">{{flights.get(flight)[4]}} - {{flights.get(flight)[5]}}</span>
         </div>
-        <form>
-            <input type="hidden" name="{{flight_from[0]}}">
-            <div><button type="submit" class="btn btn-primary">Choose</button></div>
-            </form>
+        </form>
+        {% endif %}
+    <form action="/buy" method="post">        
+        <input type="hidden" name="flight" value="{{flight[0]}}">
+        <div>
+            <button type="submit" class="btn btn-primary">Choose</button>
+        </div>
+    </form>
     </div>
+    
     {% endfor %}
-    {% endif %}
-   
-</form>
+
 
 
 

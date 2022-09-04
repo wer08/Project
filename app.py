@@ -28,11 +28,17 @@ app.config['MAIL_PASSWORD'] = '13b217b9a01d7d'
 app.config['MAIL_USE_TLS'] = True
 app.config['MAIL_USE_SSL'] = False
 mail = Mail(app)
+
+@app.route("/buy", methods=["GET","POST"])
+def buy():
+    chosen=request.form.get("flight")
+    
+    return redirect("/")
     
 @app.route("/", methods=["GET","POST"])
 def index():
-    session["flights_to"].clear()
-    session["flights_from"].clear()
+
+    session["flights"].clear()
     choice = request.form.get("choice",False)
     airports = db.execute("SELECT city,name FROM airport")
     today = date.today()
@@ -63,7 +69,7 @@ def index():
         if not flights_to:
             flash("There is no flight on that day")
             return redirect("/")
-        session["flights_to"] = flights_to
+        session["flights"] = flights_to
         if choice == "two":
             date_return = request.form.get("date-of-return")
             date_return_format = datetime.strptime(date_return,"%Y-%m-%d")
@@ -74,14 +80,19 @@ def index():
             if not flights_from:
                 flash("There is no return flight on that day")
                 return redirect("/")
-            session["flights_from"] = flights_from
-            print(session["flights_from"])
-            print(session["flights_to"])
-            return render_template("index.html",d=d,airports=airports,departure=session["departure"],arrival=session["arrival"],flights_to=session["flights_to"],flights_from=session["flights_from"],choice=choice)
+            flights = {}
+            for flight_from in flights_from:
+                for flight_to in flights_to:
+                    flights[flight_from] = flight_to
+                    break
+            session["flights"] = flights
+            chosen = request.form.get("flight")
+            print(chosen)
+            return render_template("index.html",d=d,airports=airports,departure=session["departure"],arrival=session["arrival"],flights=session["flights"],choice=choice)
         else:
-            return render_template("index.html",d=d,airports=airports,departure=session["departure"],arrival=session["arrival"],flights_to=session["flights_to"],flights_from=session["flights_from"],choice=choice)
+            return render_template("index.html",d=d,airports=airports,departure=session["departure"],arrival=session["arrival"],flights=session["flights"],choice=choice)
     else:
-        return render_template("index.html",d=d,airports=airports,departure=session["departure"],arrival=session["arrival"],flights_to=session["flights_to"],flights_from=session["flights_from"],choice=choice)
+        return render_template("index.html",d=d,airports=airports,departure=session["departure"],arrival=session["arrival"],flights=session["flights"],choice=choice)
 
 @app.route("/profil",methods=["GET","POST"])
 def profil():
