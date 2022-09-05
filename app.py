@@ -31,14 +31,19 @@ mail = Mail(app)
 
 @app.route("/buy", methods=["GET","POST"])
 def buy():
-    chosen=request.form.get("flight")
+    chosen_to=request.form.get("flight_to")
+    chosen_from=request.form.get("flight_from")
+    choice=request.form.get("type")
+    flight_to = db.execute("SELECT * FROM flight WHERE id = ?",(chosen_to,))
+    flight_from = db.execute("SELECT * FROM flight WHERE id = ?",(chosen_from,))
     
-    return redirect("/")
+    
+    return render_template("buy.html",flight_to=flight_to,flight_from=flight_from,departure=session["departure"],arrival=session["arrival"],choice=choice)
+ 
     
 @app.route("/", methods=["GET","POST"])
 def index():
 
-    session["flights"].clear()
     choice = request.form.get("choice",False)
     airports = db.execute("SELECT city,name FROM airport")
     today = date.today()
@@ -92,7 +97,7 @@ def index():
         else:
             return render_template("index.html",d=d,airports=airports,departure=session["departure"],arrival=session["arrival"],flights=session["flights"],choice=choice)
     else:
-        return render_template("index.html",d=d,airports=airports,departure=session["departure"],arrival=session["arrival"],flights=session["flights"],choice=choice)
+        return render_template("index.html",d=d,airports=airports,departure="",arrival="",flights={},choice=choice)
 
 @app.route("/profil",methods=["GET","POST"])
 def profil():

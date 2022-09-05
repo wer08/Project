@@ -44,7 +44,7 @@
 
         <span>
             <label><b>Date of return</b>
-            <input name="date-of-return" placeholder="Date" type ="date" min={{d}} id="return">
+            <input name="date-of-return" placeholder="Date" type ="date" min={{d}} id="return" >
             </label>
         </span>
 
@@ -67,8 +67,8 @@
         </span>        
     </div>
 </form>
-<form action="/" method="post">
-    {% for flight in flights %}
+{% for flight in flights %}
+<form action="/buy" method="post">
     <div class ="border">
         <div>
             <span class = "start">
@@ -98,11 +98,12 @@
                 {{departure}}
             </span>
             <span class="finish">{{flights.get(flight)[4]}} - {{flights.get(flight)[5]}}</span>
+            <input type="hidden" name="flight_from" value={{flights.get(flight)[0]}}>
         </div>
-        </form>
-        {% endif %}
-    <form action="/buy" method="post">        
-        <input type="hidden" name="flight" value="{{flight[0]}}">
+        
+        {% endif %}     
+        <input type="hidden" name="flight_to" value={{flight[0]}}>
+        <input type="hidden" name="type" value={{choice}}>
         <div>
             <button type="submit" class="btn btn-primary">Choose</button>
         </div>
@@ -143,6 +144,7 @@
     var input = this.value;
     console.log(input);
     document.getElementById("return").setAttribute("min",input)
+    document.getElementById("return").setAttribute("value",input)
 
 });
   
