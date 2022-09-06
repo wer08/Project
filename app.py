@@ -8,6 +8,9 @@ from datetime import date,datetime
 import sqlite3
 from flask_mail import Mail,Message
 from werkzeug.utils import secure_filename
+import pdfkit
+
+
 
 app = Flask(__name__)
 #Create Database
@@ -29,11 +32,22 @@ app.config['MAIL_USE_TLS'] = True
 app.config['MAIL_USE_SSL'] = False
 mail = Mail(app)
 
+
+path_to_file = "/home/wer08/Project/templates/profil.html"
+
+
+@app.route("/print", methods=["GET","POST"])
+def print():
+    return redirect("/")
+
 @app.route("/buy", methods=["GET","POST"])
 def buy():
+    pdfkit.from_file(path_to_file, output_path='sample.pdf')
     chosen_to=request.form.get("flight_to")
     chosen_from=request.form.get("flight_from")
     choice=request.form.get("type")
+    session["chosen_from"]=chosen_from
+    session["chosen_to"]=chosen_to
     flight_to = db.execute("SELECT * FROM flight WHERE id = ?",(chosen_to,))
     flight_from = db.execute("SELECT * FROM flight WHERE id = ?",(chosen_from,))
     
@@ -131,7 +145,7 @@ def profil():
 @app.route("/logout")
 def logout():
     flash('You are logout')
-    session["name"] = None
+    session.clear()
     return redirect("/")
 
 @app.route("/login", methods = ["GET","POST"])
@@ -140,7 +154,6 @@ def login():
         return render_template("login.html")
     else:
         username = request.form.get("inputUsername")
-        print(username)
         password = request.form.get("inputPassword")
         users = db.execute("SELECT username FROM users")
         for user in users:

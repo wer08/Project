@@ -32,7 +32,6 @@
             {{departure}}
         </span>
         <span class="finish">{{flight_from[4]}} - {{flight_from[5]}}</span>
-        <input type="hidden" name="flight_from" value={{flights.get(flight)[0]}}>
     </div>
     {% endif %}
     <span>
@@ -40,6 +39,9 @@
     <input type ="number" min="0" name="bags" id="bags" placeholder="0">
     <p id="price">Price: </p>
     </span>
+    <form action="/print" method="post">
+        <button type="submit" name="print" class="btn btn-primary">Buy</button>
+    </form>
 </div>
 <script>
 
