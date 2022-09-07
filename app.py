@@ -8,9 +8,6 @@ from datetime import date,datetime
 import sqlite3
 from flask_mail import Mail,Message
 from werkzeug.utils import secure_filename
-import pdfkit
-
-
 
 app = Flask(__name__)
 #Create Database
@@ -32,17 +29,22 @@ app.config['MAIL_USE_TLS'] = True
 app.config['MAIL_USE_SSL'] = False
 mail = Mail(app)
 
-
-path_to_file = "/home/wer08/Project/templates/profil.html"
+@app.route("/bought")
+def bought():
+ 
+    return render_template("bought.html")
 
 
 @app.route("/print", methods=["GET","POST"])
 def print():
-    return redirect("/")
+    msg = Message('Ticket purchase confirmation', sender = 'peter@mailtrap.io', recipients = ['paul@mailtrap.io'])
+    msg.body = "Ticket bought"
+    mail.send(msg)
+    flash("Ticket succesfully bought")
+    return redirect("/bought")
 
 @app.route("/buy", methods=["GET","POST"])
 def buy():
-    pdfkit.from_file(path_to_file, output_path='sample.pdf')
     chosen_to=request.form.get("flight_to")
     chosen_from=request.form.get("flight_from")
     choice=request.form.get("type")
