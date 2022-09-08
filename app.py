@@ -35,8 +35,8 @@ def bought():
     return render_template("bought.html")
 
 
-@app.route("/print", methods=["GET","POST"])
-def print():
+@app.route("/printing", methods=["GET","POST"])
+def printing():
     msg = Message('Ticket purchase confirmation', sender = 'peter@mailtrap.io', recipients = ['paul@mailtrap.io'])
     msg.body = "Ticket bought"
     mail.send(msg)
@@ -61,7 +61,8 @@ def buy():
 def index():
 
     choice = request.form.get("choice",False)
-    airports = db.execute("SELECT city,name FROM airport")
+    airports_cursor = db.execute("SELECT city,name FROM airport")
+    airports = airports_cursor.fetchall()
     today = date.today()
     d = today.strftime("%Y-%m-%d")
     if request.method == "POST":
@@ -108,7 +109,6 @@ def index():
                     break
             session["flights"] = flights
             chosen = request.form.get("flight")
-            print(chosen)
             return render_template("index.html",d=d,airports=airports,departure=session["departure"],arrival=session["arrival"],flights=session["flights"],choice=choice)
         else:
             return render_template("index.html",d=d,airports=airports,departure=session["departure"],arrival=session["arrival"],flights=session["flights"],choice=choice)
@@ -139,7 +139,6 @@ def profil():
         con.commit()
         flash('You changed personal information')
         session["name"] = username
-        print(session["name"])
         return render_template("profil.html",username=username,name=name,surname=surname,email=email)
         
 
