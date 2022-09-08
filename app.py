@@ -37,9 +37,9 @@ def bought():
 
 @app.route("/printing", methods=["GET","POST"])
 def printing():
-    msg = Message('Ticket purchase confirmation', sender = 'peter@mailtrap.io', recipients = ['paul@mailtrap.io'])
-    msg.body = "Ticket bought"
-    mail.send(msg)
+   # msg = Message('Ticket purchase confirmation', sender = 'peter@mailtrap.io', recipients = ['paul@mailtrap.io'])
+    #msg.body = "Ticket bought"
+    #mail.send(msg)
     flash("Ticket succesfully bought")
     return redirect("/bought")
 
@@ -48,10 +48,17 @@ def buy():
     chosen_to=request.form.get("flight_to")
     chosen_from=request.form.get("flight_from")
     choice=request.form.get("type")
-    session["chosen_from"]=chosen_from
-    session["chosen_to"]=chosen_to
+    print(chosen_to)
+    print(chosen_from)
     flight_to = db.execute("SELECT * FROM flight WHERE id = ?",(chosen_to,))
+    
     flight_from = db.execute("SELECT * FROM flight WHERE id = ?",(chosen_from,))
+    flight_to = flight_to.fetchone()
+    flight_from = flight_from.fetchone()
+    session["to"] = flight_to
+    session["from"]=flight_from
+    print(flight_to)
+    print(flight_from)
     
     
     return render_template("buy.html",flight_to=flight_to,flight_from=flight_from,departure=session["departure"],arrival=session["arrival"],choice=choice)
