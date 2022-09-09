@@ -50,15 +50,19 @@ def buy():
     choice=request.form.get("type")
     print(chosen_to)
     print(chosen_from)
-    flight_to = db.execute("SELECT * FROM flight WHERE id = ?",(chosen_to,))
+    data_tuple = (chosen_to,)
+    data_tuple2 = (chosen_from,)
+    print(data_tuple)
+    print(data_tuple2)
+    flight_to = db.execute("SELECT * FROM flight WHERE id = ?",chosen_to)
     
-    flight_from = db.execute("SELECT * FROM flight WHERE id = ?",(chosen_from,))
-    flight_to = flight_to.fetchone()
-    flight_from = flight_from.fetchone()
-    session["to"] = flight_to
-    session["from"]=flight_from
-    print(flight_to)
-    print(flight_from)
+    flight_from = db.execute("SELECT * FROM flight WHERE id = ?",data_tuple2)
+    dest_flight = flight_to.fetchone()
+    return_flight = flight_from.fetchone()
+    session["to"] = dest_flight
+    session["from"]=return_flight
+    print(dest_flight)
+    print(return_flight)
     
     
     return render_template("buy.html",flight_to=flight_to,flight_from=flight_from,departure=session["departure"],arrival=session["arrival"],choice=choice)
