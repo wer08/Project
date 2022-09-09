@@ -29,44 +29,6 @@ app.config['MAIL_USE_TLS'] = True
 app.config['MAIL_USE_SSL'] = False
 mail = Mail(app)
 
-@app.route("/bought")
-def bought():
- 
-    return render_template("bought.html")
-
-
-@app.route("/printing", methods=["GET","POST"])
-def printing():
-   # msg = Message('Ticket purchase confirmation', sender = 'peter@mailtrap.io', recipients = ['paul@mailtrap.io'])
-    #msg.body = "Ticket bought"
-    #mail.send(msg)
-    flash("Ticket succesfully bought")
-    return redirect("/bought")
-
-@app.route("/buy", methods=["GET","POST"])
-def buy():
-    chosen_to=request.form.get("flight_to")
-    chosen_from=request.form.get("flight_from")
-    choice=request.form.get("type")
-    print(chosen_to)
-    print(chosen_from)
-    data_tuple = (chosen_to,)
-    data_tuple2 = (chosen_from,)
-    print(data_tuple)
-    print(data_tuple2)
-    flight_to = db.execute("SELECT * FROM flight WHERE id = ?",chosen_to)
-    
-    flight_from = db.execute("SELECT * FROM flight WHERE id = ?",data_tuple2)
-    dest_flight = flight_to.fetchone()
-    return_flight = flight_from.fetchone()
-    session["to"] = dest_flight
-    session["from"]=return_flight
-    print(dest_flight)
-    print(return_flight)
-    
-    
-    return render_template("buy.html",flight_to=flight_to,flight_from=flight_from,departure=session["departure"],arrival=session["arrival"],choice=choice)
- 
     
 @app.route("/", methods=["GET","POST"])
 def index():
@@ -93,11 +55,14 @@ def index():
         adults = request.form.get("adults")
         underage = request.form.get("underage")
         id_departures = db.execute("SELECT id FROM airport WHERE name = ?",(departure,))
+        con.commit()
         id_departure = id_departures.fetchone()
         id_arrivals = db.execute("SELECT id FROM airport WHERE name = ?",(arrival,))
+        con.commit()
         id_arrival = id_arrivals.fetchone()
         data_tuple = (id_departure[0],id_arrival[0],date_depart_format)
         flights_to_cursor = db.execute("SELECT * FROM flight WHERE departure_id = ? AND arrival_id = ? AND date = ?",data_tuple)
+        con.commit()
         flights_to = flights_to_cursor.fetchall()
         if not flights_to:
             flash("There is no flight on that day")
@@ -109,6 +74,7 @@ def index():
             date_return_format = date_return_format.strftime("%d.%m.%Y")
             data_tuple2 = (id_arrival[0],id_departure[0],date_return_format)
             flights_from_cursor = db.execute("SELECT * FROM flight WHERE departure_id = ? AND arrival_id = ? AND date = ?",data_tuple2)
+            con.commit()
             flights_from = flights_from_cursor.fetchall()
             if not flights_from:
                 flash("There is no return flight on that day")
@@ -126,10 +92,62 @@ def index():
     else:
         return render_template("index.html",d=d,airports=airports,departure="",arrival="",flights={},choice=choice)
 
+@app.route("/buy", methods=["GET","POST"])
+def buy():
+    chosen_to=request.form.get("flight_to")
+    chosen_from=request.form.get("flight_from")
+    choice=request.form.get("type")
+    data_tuple = (chosen_to,)
+    data_tuple2 = (chosen_from,)
+    flight_to_cursor = db.execute("SELECT * FROM flight WHERE id = ?",data_tuple)
+    con.commit()
+    flight_to = flight_to_cursor.fetchone()
+    flight_from_cursor = db.execute("SELECT * FROM flight WHERE id = ?",data_tuple2)
+    con.commit()
+    flight_from = flight_from_cursor.fetchone()
+    
+    if flight_to:
+        db.execute("INSERT INTO booked (user_id,flight_id) VALUES (?,?)",(session["id"],chosen_to))
+    if flight_from:
+        db.execute("INSERT INTO booked (user_id,flight_id) VALUES (?,?)",(session["id"],chosen_from))
+    
+    return render_template("buy.html",flight_to=flight_to,flight_from=flight_from,departure=session["departure"],arrival=session["arrival"],choice=choice)
+ 
+
+@app.route("/printing", methods=["GET","POST"])
+def printing():
+   # msg = Message('Ticket purchase confirmation', sender = 'peter@mailtrap.io', recipients = ['paul@mailtrap.io'])
+    #msg.body = "Ticket bought"
+    #mail.send(msg)
+    flash("Ticket succesfully bought")
+    return redirect("/bought")
+
+@app.route("/bought")
+def bought():
+    booked_flights = []
+    booked_flights_id_cursor = db.execute("SELECT flight_id FROM booked WHERE user_id=?",(session["id"],)) 
+    con.commit()
+    booked_flights_id = booked_flights_id_cursor.fetchall()
+    for booked_flight_id in booked_flights_id:
+        booked_flight_cursor = db.execute("SELECT * FROM flight WHERE id = ?"(booked_flight_id,))
+        con.commit()
+        booked_flight = booked_flight_cursor.fetchone()
+        departure_cursor = db.execute("SELECT name FROM airport WHERE id = ?",(booked_flight[1]))
+        con.commit()
+        departure = departure_cursor.fetchone()
+        arrival_cursor = db.execute("SELECT name FROM airport WHERE id = ?",(booked_flight[2]))
+        con.commit()
+        arrival = arrival_cursor.fetchone()
+        flight = (departure,arrival,booked_flight[3],booked_flight[4],booked_flight[5]) 
+        booked_flights.append(flight)
+        
+    return render_template("bought.html",booked_flights=booked_flights)
+
 @app.route("/profil",methods=["GET","POST"])
 def profil():
     if request.method == "GET":
         users= db.execute("SELECT * FROM users WHERE username = ?",(session["name"],))
+        con.commit()
         user = users.fetchone()
         username = user[1]
         name = user[2]
@@ -142,6 +160,7 @@ def profil():
         surname = request.form.get("surname")
         email = request.form.get("email")
         users = db.execute("SELECT username, email FROM users WHERE NOT username = ?",(session["name"],))
+        con.commit()
         for user in users:
             if user[0] == username or user[1] == email:
                 flash('There is user with this username or email')
@@ -167,14 +186,17 @@ def login():
     else:
         username = request.form.get("inputUsername")
         password = request.form.get("inputPassword")
-        users = db.execute("SELECT username FROM users")
+        users = db.execute("SELECT id,username FROM users")
+        con.commit()
         for user in users:
-            if username == user[0]:
-                passwords = db.execute("SELECT hashed_password FROM users WHERE username = ?",user)
+            if username == user[1]:
+                passwords = db.execute("SELECT hashed_password FROM users WHERE username = ?",(user[1],))
+                con.commit()
                 for hash in passwords:
                     if sha256_crypt.verify(password,hash[0]):
                         flash('You were successfully logged in')
                         session["name"] = username
+                        session["id"] = user[0]
                         return redirect("/")
                     else:
                         flash('Wrong password')
@@ -213,6 +235,7 @@ def register():
             return redirect("/register")
         else:
             users = db.execute("SELECT username,email FROM users")
+            con.commit()
             for user in users:
                 if username == user[0] or email == user[1]:
                     flash("This username or email is taken")
