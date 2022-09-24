@@ -32,6 +32,10 @@ mail = Mail(app)
     
 @app.route("/", methods=["GET","POST"])
 def index():
+    flag=True
+    if not session:
+        flag=False
+    print(flag)
 
     choice = request.form.get("choice",False)
     airports_cursor = db.execute("SELECT city,name FROM airport")
@@ -86,11 +90,13 @@ def index():
                     break
             session["flights"] = flights
             chosen = request.form.get("flight")
-            return render_template("index.html",d=d,airports=airports,departure=session["departure"],arrival=session["arrival"],flights=session["flights"],choice=choice)
+            return render_template("index.html",d=d,airports=airports,departure=session["departure"],arrival=session["arrival"],flights=session["flights"],choice=choice,flag=flag)
         else:
-            return render_template("index.html",d=d,airports=airports,departure=session["departure"],arrival=session["arrival"],flights=session["flights"],choice=choice)
+
+            return render_template("index.html",d=d,airports=airports,departure=session["departure"],arrival=session["arrival"],flights=session["flights"],choice=choice,flag=flag)
     else:
-        return render_template("index.html",d=d,airports=airports,departure="",arrival="",flights={},choice=choice)
+        print("I'm here")
+        return render_template("index.html",d=d,airports=airports,departure="",arrival="",flights=[],choice=choice,flag=flag)
 
 @app.route("/buy", methods=["GET","POST"])
 def buy():
@@ -116,9 +122,9 @@ def buy():
 
 @app.route("/printing", methods=["GET","POST"])
 def printing():
-   # msg = Message('Ticket purchase confirmation', sender = 'peter@mailtrap.io', recipients = ['paul@mailtrap.io'])
-    #msg.body = "Ticket bought"
-    #mail.send(msg)
+    msg = Message('Ticket purchase confirmation', sender = 'peter@mailtrap.io', recipients = ['paul@mailtrap.io'])
+    msg.body = "Ticket bought"
+    mail.send(msg)
     flash("Ticket succesfully bought")
     return redirect("/bought")
 
@@ -129,7 +135,7 @@ def bought():
     con.commit()
     booked_flights_id = booked_flights_id_cursor.fetchall()
     for booked_flight_id in booked_flights_id:
-        booked_flight_cursor = db.execute("SELECT * FROM flight WHERE id = ?"(booked_flight_id,))
+        booked_flight_cursor = db.execute("SELECT * FROM flight WHERE id = ?"(booked_flights_id,))
         con.commit()
         booked_flight = booked_flight_cursor.fetchone()
         departure_cursor = db.execute("SELECT name FROM airport WHERE id = ?",(booked_flight[1]))

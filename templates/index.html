@@ -101,12 +101,14 @@
             <input type="hidden" name="flight_from" value={{flights.get(flight)[0]}}>
         </div>
         
-        {% endif %}     
+        {% endif %}    
+        {% if flag %} 
         <input type="hidden" name="flight_to" value={{flight[0]}}>
         <input type="hidden" name="type" value={{choice}}>
         <div>
             <button type="submit" class="btn btn-primary">Choose</button>
         </div>
+        {% endif %}
     </form>
     </div>
     
