@@ -36,19 +36,20 @@
     {% endif %}
     <span>
     <label for="bags">Number of bags</label>
-    <input type ="number" min="0" name="bags" id="bags" placeholder="0">
-    <p id="price">Price: </p>
+    <input type ="number" min="0" name="bags" id="bags" value="0">
+    <p>Price: $<span id="price">{{price}}</span></p>
     </span>
-    <form action="/printing" method="post">
-        <button type="submit" name="print" class="btn btn-primary">Buy</button>
+    <form action="/buy" method="post">
+        <button type="submit" name="buy" class="btn btn-primary">Buy</button>
     </form>
 </div>
 <script>
 
+    let price = parseInt(document.getElementById("price").innerHTML);
     document.getElementById("bags").addEventListener("change", function() {
     let bags = this.value;
     console.log(bags);
-    document.getElementById("price").innerHTML = "Price : "+bags*10;
+    document.getElementById("price").innerHTML = (bags*10 + price).toFixed(2);
 
 
 });

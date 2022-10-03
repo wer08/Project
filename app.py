@@ -35,7 +35,6 @@ def index():
     flag=True
     if not session:
         flag=False
-    print(flag)
 
     choice = request.form.get("choice",False)
     airports_cursor = db.execute("SELECT city,name FROM airport")
@@ -56,8 +55,8 @@ def index():
             return redirect("/")
         date_depart_format = datetime.strptime(date_departure,"%Y-%m-%d")
         date_depart_format = date_depart_format.strftime("%d.%m.%Y")
-        adults = request.form.get("adults")
-        underage = request.form.get("underage")
+        adults = int(request.form.get("adults"))
+        underage = int(request.form.get("underage"))
         id_departures = db.execute("SELECT id FROM airport WHERE name = ?",(departure,))
         con.commit()
         id_departure = id_departures.fetchone()
@@ -89,44 +88,44 @@ def index():
                     flights[flight_from] = flight_to
                     break
             session["flights"] = flights
-            chosen = request.form.get("flight")
-            return render_template("index.html",d=d,airports=airports,departure=session["departure"],arrival=session["arrival"],flights=session["flights"],choice=choice,flag=flag)
+            return render_template("index.html",d=d,airports=airports,departure=session["departure"],arrival=session["arrival"],flights=session["flights"],choice=choice,flag=flag,adults=adults,underage=underage)
         else:
-
-            return render_template("index.html",d=d,airports=airports,departure=session["departure"],arrival=session["arrival"],flights=session["flights"],choice=choice,flag=flag)
+            return render_template("index.html",d=d,airports=airports,departure=session["departure"],arrival=session["arrival"],flights=session["flights"],choice=choice,flag=flag,adults=adults,underage=underage)
     else:
-        print("I'm here")
-        return render_template("index.html",d=d,airports=airports,departure="",arrival="",flights=[],choice=choice,flag=flag)
+        return render_template("index.html",d=d,airports=airports,departure="",arrival="",flights=[],choice=choice,flag=flag,adults=0,underage=0)
 
 @app.route("/buy", methods=["GET","POST"])
 def buy():
-    chosen_to=request.form.get("flight_to")
-    chosen_from=request.form.get("flight_from")
-    choice=request.form.get("type")
+    price = request.args.get("flight_price")
+    chosen_to=request.args.get("flight_to")
+    chosen_from=request.args.get("flight_from")
+    choice=request.args.get("type")
     data_tuple = (chosen_to,)
     data_tuple2 = (chosen_from,)
     flight_to_cursor = db.execute("SELECT * FROM flight WHERE id = ?",data_tuple)
-    con.commit()
     flight_to = flight_to_cursor.fetchone()
+    session["flight_to"] = flight_to
     flight_from_cursor = db.execute("SELECT * FROM flight WHERE id = ?",data_tuple2)
     con.commit()
     flight_from = flight_from_cursor.fetchone()
+    session["flight_from"] = flight_from
+    if(request.method == "POST"):
+        e_mail = db.execute("SELECT email FROM users WHERE username = ?",(session["name"],))
+        msg = Message('Ticket purchase confirmation', sender = 'peter@mailtrap.io', recipients = ['paul@mailtrap.io'])
+        msg.body = "Ticket bought"
+        mail.send(msg)
+        flight_to = session["flight_to"]
+        flight_from = session["flight_from"]
+        if session["flight_to"]:
+            db.execute("INSERT INTO booked (user_id,flight_id) VALUES (?,?)",(session["id"],flight_to[0]))
+            flash("Ticket succesfully bought")
+        if session["flight_from"]:
+            db.execute("INSERT INTO booked (user_id,flight_id) VALUES (?,?)",(session["id"],flight_from[0]))
+            flash("Ticket succesfully bought")
+        return redirect("/bought")
     
-    if flight_to:
-        db.execute("INSERT INTO booked (user_id,flight_id) VALUES (?,?)",(session["id"],chosen_to))
-    if flight_from:
-        db.execute("INSERT INTO booked (user_id,flight_id) VALUES (?,?)",(session["id"],chosen_from))
-    
-    return render_template("buy.html",flight_to=flight_to,flight_from=flight_from,departure=session["departure"],arrival=session["arrival"],choice=choice)
+    return render_template("buy.html",flight_to=flight_to,flight_from=flight_from,departure=session["departure"],arrival=session["arrival"],choice=choice,price=price)
  
-
-@app.route("/printing", methods=["GET","POST"])
-def printing():
-    msg = Message('Ticket purchase confirmation', sender = 'peter@mailtrap.io', recipients = ['paul@mailtrap.io'])
-    msg.body = "Ticket bought"
-    mail.send(msg)
-    flash("Ticket succesfully bought")
-    return redirect("/bought")
 
 @app.route("/bought")
 def bought():
@@ -135,16 +134,21 @@ def bought():
     con.commit()
     booked_flights_id = booked_flights_id_cursor.fetchall()
     for booked_flight_id in booked_flights_id:
-        booked_flight_cursor = db.execute("SELECT * FROM flight WHERE id = ?"(booked_flights_id,))
+        booked_flight_cursor = db.execute("SELECT * FROM flight WHERE id = ?",booked_flight_id)
         con.commit()
         booked_flight = booked_flight_cursor.fetchone()
-        departure_cursor = db.execute("SELECT name FROM airport WHERE id = ?",(booked_flight[1]))
+        departure_cursor = db.execute("SELECT name FROM airport WHERE id = ?",(booked_flight[1],))
         con.commit()
         departure = departure_cursor.fetchone()
-        arrival_cursor = db.execute("SELECT name FROM airport WHERE id = ?",(booked_flight[2]))
+        departure = departure[0]
+        arrival_cursor = db.execute("SELECT name FROM airport WHERE id = ?",(booked_flight[2],))
         con.commit()
         arrival = arrival_cursor.fetchone()
-        flight = (departure,arrival,booked_flight[3],booked_flight[4],booked_flight[5]) 
+        arrival = arrival[0]
+        date_cursor = db.execute("SELECT date FROM flight WHERE id = ?",booked_flight_id)
+        date_of_flight = date_cursor.fetchone()
+        date_of_flight = date_of_flight[0]
+        flight = (departure,arrival,booked_flight[3],booked_flight[4],booked_flight[5],date_of_flight) 
         booked_flights.append(flight)
         
     return render_template("bought.html",booked_flights=booked_flights)

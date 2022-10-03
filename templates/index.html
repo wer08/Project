@@ -50,13 +50,13 @@
 
         <span>
             <label><b>Adults</b>
-            <input name="adults" placeholder="1" class="number" type ="number" min="0" size="2">
+            <input name="adults" placeholder="1" class="number" type ="number" min="0" size="2" value="1">
             </label>
         </span>
 
         <span>
             <label><b id="underage">Underage</b>
-            <input name="underage" placeholder="0" class="number" type ="number" min="0" size="2">
+            <input name="underage" placeholder="0" class="number" type ="number" min="0" size="2" value="0">
             </label>
         </span>
 
@@ -68,8 +68,9 @@
     </div>
 </form>
 {% for flight in flights %}
-<form action="/buy" method="post">
+<form action="/buy" method="get">
     <div class ="border">
+        {% if choice == "one" %}
         <div>
             <span class = "start">
                 {{departure}}
@@ -83,8 +84,10 @@
                 {{arrival}}
             </span>
             <span class="finish">{{flight[4]}} - {{flight[5]}}</span>
+            <span class="finish">Price : {{flight[6]*adults + flight[6]*0.5*underage}}</span>
+            <input type="hidden" name="flight_price" value="{{flight[6]*adults + flight[6]*0.5*underage}}">
         </div>
-        {% if choice == "two" %}
+        {% else %}
         <div >
             <span class = "start">
                 {{arrival}}
@@ -98,13 +101,15 @@
                 {{departure}}
             </span>
             <span class="finish">{{flights.get(flight)[4]}} - {{flights.get(flight)[5]}}</span>
-            <input type="hidden" name="flight_from" value={{flights.get(flight)[0]}}>
+            <span class="finish">Price : {{flight.get(flight)[6]*adults + flight.get(flight)[6]*0.5*underage}}</span>
+            <input type="hidden" name="flight_price" value={{flight.get(flight)[6]*adults + flight.get(flight)[6]*0.5*underage + flight[6]*adults + flight[6]*0.5*underage}}>
         </div>
         
         {% endif %}    
         {% if flag %} 
         <input type="hidden" name="flight_to" value={{flight[0]}}>
         <input type="hidden" name="type" value={{choice}}>
+        
         <div>
             <button type="submit" class="btn btn-primary">Choose</button>
         </div>
