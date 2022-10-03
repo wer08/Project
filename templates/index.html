@@ -4,7 +4,7 @@
 {%endblock%}
 {% block content %}
 <form  action = "/" method="post">
-    <div>
+    <div  class="choice">
         <input name="choice" id="two_way" value = "two" type="radio" checked>
         <label for="two_way" class="radio">Both ways</label>
 
@@ -69,9 +69,9 @@
 </form>
 {% for flight in flights %}
 <form action="/buy" method="get">
-    <div class ="border">
+    <div class ="choice border">
         {% if choice == "one" %}
-        <div>
+        <div >
             <span class = "start">
                 {{departure}}
             </span>

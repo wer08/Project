@@ -185,7 +185,7 @@ def charge():
     if session["flight_from"]:
         db.execute("INSERT INTO booked (user_id,flight_id) VALUES (?,?)",(session["id"],flight_from[0]))
         flash("Ticket succesfully bought")
-    return render_template('bought.html', amount=amount)
+    return redirect("/bought")
 
 @app.route("/profil",methods=["GET","POST"])
 def profil():
