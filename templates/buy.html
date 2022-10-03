@@ -34,12 +34,12 @@
         <span class="finish">{{flight_from[4]}} - {{flight_from[5]}}</span>
     </div>
     {% endif %}
-    <span>
-    <label for="bags">Number of bags</label>
-    <input type ="number" min="0" name="bags" id="bags" value="0">
-    <p>Price: $<span id="price">{{price}}</span></p>
-    </span>
     <form action="/buy" method="post">
+        <span>
+            <label for="bags">Number of bags</label>
+            <input type ="number" min="0" name="bags" id="bags" value="0">
+            <p>Price: $<span id="price">{{price}}</span></p>
+        </span>
         <button type="submit" name="buy" class="btn btn-primary">Buy</button>
     </form>
 </div>

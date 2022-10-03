@@ -1,5 +1,4 @@
 from asyncore import read
-from crypt import methods
 from time import strftime
 from flask import Flask, render_template, request, redirect, session, flash, url_for
 from flask_session import Session
@@ -8,6 +7,8 @@ from datetime import date,datetime
 import sqlite3
 from flask_mail import Mail,Message
 from werkzeug.utils import secure_filename
+import stripe
+import os
 
 app = Flask(__name__)
 #Create Database
@@ -19,6 +20,14 @@ app.config["SESSION_PERMANENT"] = False
 app.config["SESSION_TYPE"] = "filesystem"
 app.config["UPLOAD_FOLDER"] = "static/"
 Session(app)
+
+#Create Stripe payment 
+stripe_keys = {
+  'secret_key': os.environ['SECRET_KEY'],
+  'publishable_key': os.environ['PUBLISHABLE_KEY']
+}
+
+stripe.api_key = stripe_keys['secret_key']
 
 
 app.config['MAIL_SERVER']='smtp.mailtrap.io'
@@ -96,34 +105,27 @@ def index():
 
 @app.route("/buy", methods=["GET","POST"])
 def buy():
-    price = request.args.get("flight_price")
-    chosen_to=request.args.get("flight_to")
-    chosen_from=request.args.get("flight_from")
-    choice=request.args.get("type")
-    data_tuple = (chosen_to,)
-    data_tuple2 = (chosen_from,)
-    flight_to_cursor = db.execute("SELECT * FROM flight WHERE id = ?",data_tuple)
-    flight_to = flight_to_cursor.fetchone()
-    session["flight_to"] = flight_to
-    flight_from_cursor = db.execute("SELECT * FROM flight WHERE id = ?",data_tuple2)
-    con.commit()
-    flight_from = flight_from_cursor.fetchone()
-    session["flight_from"] = flight_from
+    if request.method == "GET":
+        session["price"]=None
+        price = request.args.get("flight_price")
+        session["price"] = price
+        chosen_to=request.args.get("flight_to")
+        chosen_from=request.args.get("flight_from")
+        choice=request.args.get("type")
+        data_tuple = (chosen_to,)
+        data_tuple2 = (chosen_from,)
+        flight_to_cursor = db.execute("SELECT * FROM flight WHERE id = ?",data_tuple)
+        flight_to = flight_to_cursor.fetchone()
+        session["flight_to"] = flight_to
+        flight_from_cursor = db.execute("SELECT * FROM flight WHERE id = ?",data_tuple2)
+        con.commit()
+        flight_from = flight_from_cursor.fetchone()
+        session["flight_from"] = flight_from
     if(request.method == "POST"):
-        e_mail = db.execute("SELECT email FROM users WHERE username = ?",(session["name"],))
-        msg = Message('Ticket purchase confirmation', sender = 'peter@mailtrap.io', recipients = ['paul@mailtrap.io'])
-        msg.body = "Ticket bought"
-        mail.send(msg)
-        flight_to = session["flight_to"]
-        flight_from = session["flight_from"]
-        if session["flight_to"]:
-            db.execute("INSERT INTO booked (user_id,flight_id) VALUES (?,?)",(session["id"],flight_to[0]))
-            flash("Ticket succesfully bought")
-        if session["flight_from"]:
-            db.execute("INSERT INTO booked (user_id,flight_id) VALUES (?,?)",(session["id"],flight_from[0]))
-            flash("Ticket succesfully bought")
-        return redirect("/bought")
-    
+        bags = request.form.get("bags")
+        bags_price = float(bags) * 10
+        session["price"] = float(bags_price) + float(session["price"])
+        return render_template("charge.html",key=stripe_keys['publishable_key'],price=session["price"])
     return render_template("buy.html",flight_to=flight_to,flight_from=flight_from,departure=session["departure"],arrival=session["arrival"],choice=choice,price=price)
  
 
@@ -152,6 +154,38 @@ def bought():
         booked_flights.append(flight)
         
     return render_template("bought.html",booked_flights=booked_flights)
+
+
+@app.route('/charge', methods=['POST'])
+def charge():
+    # Amount in cents
+    amount = int(float(session["price"]) * 100)
+
+    customer = stripe.Customer.create(
+        email='customer@example.com',
+        source=request.form['stripeToken']
+    )
+
+    charge = stripe.Charge.create(
+        customer=customer.id,
+        amount=amount,
+        currency='usd',
+        description='Price'
+    )
+
+    e_mail = db.execute("SELECT email FROM users WHERE username = ?",(session["name"],))
+    msg = Message('Ticket purchase confirmation', sender = 'peter@mailtrap.io', recipients = ['paul@mailtrap.io'])
+    msg.body = "Ticket bought"
+    mail.send(msg)
+    flight_to = session["flight_to"]
+    flight_from = session["flight_from"]
+    if session["flight_to"]:
+        db.execute("INSERT INTO booked (user_id,flight_id) VALUES (?,?)",(session["id"],flight_to[0]))
+        flash("Ticket succesfully bought")
+    if session["flight_from"]:
+        db.execute("INSERT INTO booked (user_id,flight_id) VALUES (?,?)",(session["id"],flight_from[0]))
+        flash("Ticket succesfully bought")
+    return render_template('bought.html', amount=amount)
 
 @app.route("/profil",methods=["GET","POST"])
 def profil():
@@ -196,7 +230,7 @@ def login():
     else:
         username = request.form.get("inputUsername")
         password = request.form.get("inputPassword")
-        users = db.execute("SELECT id,username FROM users")
+        users = db.execute("SELECT * FROM users")
         con.commit()
         for user in users:
             if username == user[1]:
@@ -207,6 +241,7 @@ def login():
                         flash('You were successfully logged in')
                         session["name"] = username
                         session["id"] = user[0]
+                        session["picture"] = user[7]
                         return redirect("/")
                     else:
                         flash('Wrong password')
