@@ -174,7 +174,7 @@ def charge():
     )
 
     e_mail = db.execute("SELECT email FROM users WHERE username = ?",(session["name"],))
-    msg = Message('Ticket purchase confirmation', sender = 'peter@mailtrap.io', recipients = ['paul@mailtrap.io'])
+    msg = Message('Ticket purchase confirmation', sender = 'peter@mailtrap.io', recipients = [e_mail])
     msg.body = "Ticket bought"
     mail.send(msg)
     flight_to = session["flight_to"]
@@ -288,7 +288,7 @@ def register():
             hash_password = sha256_crypt.hash(password)
             db.execute("INSERT INTO users (username,name,surname,email,hashed_password) VALUES (?,?,?,?,?)",(username,name,surname,email,hash_password))
             con.commit()
-            msg = Message('Registration confirmation', sender =   'peter@mailtrap.io', recipients = ['paul@mailtrap.io'])
+            msg = Message('Registration confirmation', sender =   'peter@mailtrap.io', recipients = [email])
             msg.body = "You are registered"
             mail.send(msg)
             flash("Registration succesful")

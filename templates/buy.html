@@ -4,7 +4,7 @@
 {%endblock%}
 {% block content %}
 <div class ="choice">
-    <div>
+    <div class="border">
         <span class = "start">
             {{departure}}
         </span>
@@ -19,7 +19,7 @@
         <span class="finish">{{flight_to[4]}} - {{flight_to[5]}}</span>
     </div>
     {% if choice == "two" %}
-    <div >
+    <div class="border">
         <span class = "start">
             {{arrival}}
         </span>
@@ -34,14 +34,16 @@
         <span class="finish">{{flight_from[4]}} - {{flight_from[5]}}</span>
     </div>
     {% endif %}
-    <form action="/buy" method="post">
-        <span>
-            <label for="bags">Number of bags</label>
-            <input type ="number" min="0" name="bags" id="bags" value="0">
-            <p>Price: $<span id="price">{{price}}</span></p>
-        </span>
-        <button type="submit" name="buy" class="btn btn-primary">Buy</button>
-    </form>
+    <div class="border">
+        <form action="/buy" method="post">
+            <span>
+                <label for="bags">Number of bags</label>
+                <input type ="number" min="0" name="bags" id="bags" value="0" >
+                <p>Price: $<span id="price">{{price}}</span></p>
+            </span>
+            <button type="submit" name="buy" class="btn btn-primary">Buy</button>
+        </form>
+    </div>
 </div>
 <script>
 

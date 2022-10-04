@@ -5,10 +5,10 @@
 {% block content %}
 <form  action = "/" method="post">
     <div  class="choice">
-        <input name="choice" id="two_way" value = "two" type="radio" checked>
+        <input name="choice" id="two_way" value = "two" type="radio" checked >
         <label for="two_way" class="radio">Both ways</label>
 
-        <input name="choice" id = "one_way" value ="one" type="radio">
+        <input name="choice" id = "one_way" value ="one" type="radio" >
         <label for="one_way" class = "radio">One way</label>
     </div>
 
@@ -20,7 +20,7 @@
     </datalist>
         <span>
             <label><b>Departure</b>
-            <input name="departure" id="departure" placeholder="Departure" autofocus list="mylist">
+            <input name="departure" id="departure" placeholder="Departure" autofocus list="mylist" class="form-control">
             </label>
         </span>
 
@@ -32,31 +32,31 @@
         
         <span>
             <label><b>Arrival</b>
-            <input name="arrival" placeholder="Arrival" list="mylist">
+            <input name="arrival" placeholder="Arrival" list="mylist" class="form-control">
             </label>
         </span>
 
         <span>
             <label><b>Date of departure</b>
-            <input name="date-of-departure" placeholder="Date" type ="date" min={{d}} id="depart">
+            <input name="date-of-departure" placeholder="Date" type ="date" min={{d}} id="depart" class="form-control">
             </label>
         </span>
 
         <span>
             <label><b>Date of return</b>
-            <input name="date-of-return" placeholder="Date" type ="date" min={{d}} id="return" >
+            <input name="date-of-return" placeholder="Date" type ="date" min={{d}} id="return" class="form-control">
             </label>
         </span>
 
         <span>
             <label><b>Adults</b>
-            <input name="adults" placeholder="1" class="number" type ="number" min="0" size="2" value="1">
+            <input name="adults" placeholder="1" class="number form-control" type ="number" min="0" size="2" value="1" >
             </label>
         </span>
 
         <span>
             <label><b id="underage">Underage</b>
-            <input name="underage" placeholder="0" class="number" type ="number" min="0" size="2" value="0">
+            <input name="underage" class="number form-control" type ="number" min="0" size="2" value="0">
             </label>
         </span>
 
@@ -84,7 +84,7 @@
                 {{arrival}}
             </span>
             <span class="finish">{{flight[4]}} - {{flight[5]}}</span>
-            <span class="finish">Price : {{flight[6]*adults + flight[6]*0.5*underage}}</span>
+            <span class="finish">Price : ${{flight[6]*adults + flight[6]*0.5*underage}}</span>
             <input type="hidden" name="flight_price" value="{{flight[6]*adults + flight[6]*0.5*underage}}">
         </div>
         {% else %}
@@ -101,7 +101,7 @@
                 {{departure}}
             </span>
             <span class="finish">{{flights.get(flight)[4]}} - {{flights.get(flight)[5]}}</span>
-            <span class="finish">Price : {{flight.get(flight)[6]*adults + flight.get(flight)[6]*0.5*underage}}</span>
+            <span class="finish">Price : ${{flight.get(flight)[6]*adults + flight.get(flight)[6]*0.5*underage}}</span>
             <input type="hidden" name="flight_price" value={{flight.get(flight)[6]*adults + flight.get(flight)[6]*0.5*underage + flight[6]*adults + flight[6]*0.5*underage}}>
         </div>
         
