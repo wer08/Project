@@ -173,8 +173,10 @@ def charge():
         description='Price'
     )
 
-    e_mail = db.execute("SELECT email FROM users WHERE username = ?",(session["name"],))
-    msg = Message('Ticket purchase confirmation', sender = 'peter@mailtrap.io', recipients = [e_mail])
+    e_mail_cursor = db.execute("SELECT email FROM users WHERE username = ?",(session["name"],))
+    e_mail = e_mail_cursor.fetchone()
+    print(e_mail[0])
+    msg = Message('Ticket purchase confirmation', sender = 'peter@mailtrap.io', recipients = [e_mail[0]])
     msg.body = "Ticket bought"
     mail.send(msg)
     flight_to = session["flight_to"]
