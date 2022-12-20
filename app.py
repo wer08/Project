@@ -23,8 +23,8 @@ Session(app)
 
 #Create Stripe payment 
 stripe_keys = {
-  'secret_key': os.environ['SECRET_KEY'],
-  'publishable_key': os.environ['PUBLISHABLE_KEY']
+  'secret_key': 'sk_test_7mJuPfZsBzc3JkrANrFrcDqC',
+  'publishable_key': 'pk_test_51AROWSJX9HHJ5bycpEUP9dK39tXufyuWogSUdeweyZEXy3LC7M8yc5d9NlQ96fRCVL0BlAu7Nqt4V7N5xZjJnrkp005fDiTMIr'
 }
 
 stripe.api_key = stripe_keys['secret_key']
